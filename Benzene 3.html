@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Study Smart — Reactivity & Orientation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d1611;
+  --surface:#132018;
+  --surface2:#1a2b20;
+  --line: rgba(238,241,234,0.09);
+  --text:#eef1ea;
+  --muted:#8fa696;
+  --accent:#7fe7b4;
+  --accent-dim: rgba(127,231,180,0.14);
+  --accent2:#ff7a54;
+  --accent2-dim: rgba(255,122,84,0.14);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:
+    radial-gradient(1200px 600px at 85% -10%, rgba(127,231,180,0.07), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(255,122,84,0.06), transparent 55%),
+    var(--bg);
+  color:var(--text);
+  font-family:'Inter',sans-serif;
+  min-height:100vh;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px 80px;}
+
+/* ---------- Header ---------- */
+header.top{
+  position:relative;
+  padding:52px 22px 30px;
+  overflow:hidden;
+  border-bottom:1px solid var(--line);
+}
+.hero-inner{max-width:1180px;margin:0 auto;position:relative;z-index:2;}
+.eyebrow{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--accent); opacity:.85; margin-bottom:14px;
+}
+h1.title{
+  font-family:'Fraunces',serif;
+  font-weight:600;
+  font-size:clamp(36px,6vw,64px);
+  line-height:1.02;
+  margin:0 0 12px;
+  letter-spacing:-0.01em;
+}
+h1.title em{font-style:italic;font-weight:300;color:var(--accent);}
+.subtitle{color:var(--muted);max-width:560px;font-size:15.5px;line-height:1.55;}
+
+/* signature: animated resonance arrow */
+.arrow-field{position:absolute; inset:0; pointer-events:none; z-index:1; opacity:.55;}
+.arrow-field svg{position:absolute; top:8px; right:-40px; width:420px; height:420px;}
+.arrow-path{
+  fill:none; stroke:var(--accent2); stroke-width:2.4; stroke-linecap:round;
+  stroke-dasharray: 6 10;
+  animation: dash 5s linear infinite;
+  opacity:.65;
+}
+.arrow-path.b{stroke:var(--accent); animation-duration:6.5s; animation-direction:reverse;}
+@keyframes dash{ to { stroke-dashoffset:-160; } }
+@media (prefers-reduced-motion: reduce){ .arrow-path{animation:none;} }
+
+/* ---------- Nav ---------- */
+nav.tabs{
+  position:sticky; top:0; z-index:50;
+  background:rgba(13,22,17,0.88);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.tabs-inner{
+  max-width:1180px;margin:0 auto;padding:0 22px;
+  display:flex; gap:4px; overflow-x:auto; scrollbar-width:none;
+}
+.tabs-inner::-webkit-scrollbar{display:none;}
+.tab-btn{
+  appearance:none;border:none;background:transparent;color:var(--muted);
+  font-family:'IBM Plex Mono',monospace;
+  font-size:12.5px; letter-spacing:.03em;
+  padding:16px 16px 14px; cursor:pointer; white-space:nowrap;
+  border-bottom:2px solid transparent;
+  transition:color .15s ease, border-color .15s ease;
+}
+.tab-btn .n{color:var(--accent2); margin-right:8px;}
+.tab-btn:hover{color:var(--text);}
+.tab-btn.active{color:var(--text); border-bottom-color:var(--accent);}
+.tab-btn.active .n{color:var(--accent);}
+
+/* ---------- Panels ---------- */
+.panel{display:none; padding-top:40px; animation:fadeIn .35s ease;}
+.panel.active{display:block;}
+@keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+.section-head{margin-bottom:26px;}
+.section-head h2{
+  font-family:'Fraunces',serif; font-weight:600; font-size:28px; margin:0 0 8px;
+}
+.section-head p{color:var(--muted); font-size:14.5px; max-width:620px; margin:0; line-height:1.5;}
+
+/* ---------- Cards / grid ---------- */
+.grid{display:grid; gap:16px;}
+.grid-2{grid-template-columns:1fr 1fr;}
+.grid-3{grid-template-columns:repeat(3,1fr);}
+@media (max-width:820px){ .grid-2, .grid-3{grid-template-columns:1fr;} }
+
+.card{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:20px 22px;
+}
+.card h3{
+  font-family:'Fraunces',serif; font-weight:600; font-size:16.5px; margin:0 0 10px;
+  display:flex; align-items:center; gap:8px;
+}
+.card h3 .dot{width:7px;height:7px;border-radius:50%;background:var(--accent); flex:none;}
+.card ul{margin:0; padding-left:18px; color:#d7ded6; font-size:14px; line-height:1.65;}
+.card p{color:#d7ded6; font-size:14px; line-height:1.65; margin:0 0 8px;}
+.card .law{
+  font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--accent);
+  background:var(--accent-dim); border-radius:8px; padding:8px 10px; margin-top:10px; line-height:1.5;
+}
+.tag{
+  display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:10.5px;
+  letter-spacing:.05em; text-transform:uppercase; padding:3px 8px; border-radius:20px;
+  border:1px solid var(--line); color:var(--muted); margin-bottom:10px;
+}
+.tag.up{color:var(--accent); border-color:rgba(127,231,180,.35);}
+.tag.down{color:var(--accent2); border-color:rgba(255,122,84,.35);}
+
+/* ---------- Overview specific ---------- */
+.rule-strip{
+  display:flex; gap:14px; overflow-x:auto; padding-bottom:6px; margin-bottom:22px;
+}
+.rule-chip{
+  flex:none; min-width:230px;
+  background:linear-gradient(180deg, var(--surface2), var(--surface));
+  border:1px solid var(--line); border-radius:14px; padding:16px 18px;
+}
+.rule-chip .k{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--accent2); letter-spacing:.05em;}
+.rule-chip .v{font-family:'Fraunces',serif; font-size:15.5px; margin-top:6px; line-height:1.35;}
+
+/* ---------- Diagram lab ---------- */
+.lab{
+  background:var(--surface); border:1px solid var(--line); border-radius:16px;
+  padding:24px; display:grid; grid-template-columns:280px 1fr; gap:26px;
+}
+@media (max-width:860px){ .lab{grid-template-columns:1fr;} }
+.controls-block{display:flex; flex-direction:column; gap:18px;}
+.ctrl-group label.ctrl-title{
+  display:block; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted);
+  letter-spacing:.06em; text-transform:uppercase; margin-bottom:8px;
+}
+.btn-row{display:flex; flex-wrap:wrap; gap:6px;}
+.opt-btn{
+  appearance:none; border:1px solid var(--line); background:var(--surface2); color:var(--text);
+  font-family:'IBM Plex Mono',monospace; font-size:12px; padding:8px 12px; border-radius:9px; cursor:pointer;
+  transition:all .15s ease;
+}
+.opt-btn:hover{border-color:var(--accent);}
+.opt-btn.active{background:var(--accent); color:#0d1611; border-color:var(--accent); font-weight:600;}
+.verdict{
+  background:var(--surface2); border:1px solid var(--line); border-radius:12px; padding:14px 16px;
+  font-size:13.5px; line-height:1.6; color:#d7ded6;
+}
+.verdict b{color:var(--accent);}
+.verdict.warn b{color:var(--accent2);}
+
+.ring-stage{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;}
+.hexwrap{position:relative; width:280px; height:280px;}
+svg.hex{width:100%; height:100%; overflow:visible;}
+.hex-edge{fill:none; stroke:rgba(238,241,234,0.35); stroke-width:2;}
+.carbon{stroke:rgba(238,241,234,0.5); stroke-width:1.5; fill:var(--surface2); transition:fill .25s ease, stroke .25s ease;}
+.carbon.charge{fill:var(--accent2); stroke:var(--accent2);}
+.carbon.gcarbon{stroke:var(--accent); stroke-width:2.5;}
+.carbon.attack{stroke:#fff; stroke-width:2.5;}
+.clabel{font-family:'IBM Plex Mono',monospace; font-size:10px; fill:var(--muted); text-anchor:middle;}
+.glabel{font-family:'IBM Plex Mono',monospace; font-size:12px; fill:var(--accent); text-anchor:middle; font-weight:600;}
+.legend{display:flex; gap:18px; flex-wrap:wrap; justify-content:center; font-size:11.5px; color:var(--muted); font-family:'IBM Plex Mono',monospace;}
+.legend .sw{display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; vertical-align:middle;}
+
+/* bar chart */
+.barchart{display:flex; align-items:flex-end; gap:22px; height:180px; padding:10px 6px 0;}
+.bar-col{flex:1; display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer;}
+.bar-track{width:100%; height:140px; display:flex; align-items:flex-end; background:rgba(255,255,255,0.03); border-radius:6px; overflow:hidden;}
+.bar-fill{width:100%; background:linear-gradient(180deg, var(--accent), rgba(127,231,180,0.35)); border-radius:6px 6px 0 0; transition:height .5s ease;}
+.bar-fill.down{background:linear-gradient(180deg, var(--accent2), rgba(255,122,84,0.35));}
+.bar-label{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted); text-align:center;}
+.bar-val{font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--text); font-weight:600;}
+.bar-tooltip{font-size:12px; color:var(--muted); line-height:1.5; min-height:20px; text-align:center; max-width:520px; margin:8px auto 0;}
+
+table.gtable{width:100%; border-collapse:collapse; font-size:13px;}
+table.gtable th{
+  text-align:left; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted);
+  text-transform:uppercase; letter-spacing:.05em; padding:8px 10px; border-bottom:1px solid var(--line);
+}
+table.gtable td{padding:9px 10px; border-bottom:1px solid var(--line); color:#d7ded6;}
+table.gtable tr td:first-child{font-family:'IBM Plex Mono',monospace; color:var(--text);}
+table.gtable tr{cursor:pointer; transition:background .15s ease;}
+table.gtable tr:hover{background:var(--surface2);}
+
+/* ---------- Mini map ---------- */
+.mm-layout{display:grid; grid-template-columns:280px 1fr; gap:20px;}
+@media (max-width:820px){ .mm-layout{grid-template-columns:1fr;} }
+.mm-list{display:flex; flex-direction:column; gap:6px;}
+.mm-node{
+  text-align:left; appearance:none; border:1px solid var(--line); background:var(--surface);
+  color:var(--text); padding:13px 15px; border-radius:11px; cursor:pointer; font-size:13.5px;
+  font-family:'Inter',sans-serif; display:flex; justify-content:space-between; align-items:center;
+  transition:border-color .15s ease, background .15s ease;
+}
+.mm-node .idx{font-family:'IBM Plex Mono',monospace; color:var(--accent2); font-size:11px;}
+.mm-node:hover{border-color:var(--accent);}
+.mm-node.active{background:var(--accent-dim); border-color:var(--accent);}
+.mm-display{
+  background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:26px;
+  min-height:320px; position:sticky; top:76px; align-self:start;
+}
+.mm-display h4{font-family:'Fraunces',serif; font-size:19px; margin:0 0 12px; color:var(--accent);}
+.mm-display p, .mm-display li{font-size:14px; line-height:1.7; color:#d7ded6;}
+.mm-display .empty{color:var(--muted); font-size:13.5px; font-style:italic;}
+
+/* ---------- Flashcards ---------- */
+.fc-bar{display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:10px;}
+.fc-count{font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--muted);}
+.fc-stage{display:flex; justify-content:center; margin-bottom:20px;}
+.flashcard{
+  width:100%; max-width:560px; height:280px; perspective:1400px; cursor:pointer;
+}
+.fc-inner{
+  position:relative; width:100%; height:100%; transition:transform .5s cubic-bezier(.4,.2,.2,1);
+  transform-style:preserve-3d;
+}
+.flashcard.flipped .fc-inner{transform:rotateY(180deg);}
+.fc-face{
+  position:absolute; inset:0; backface-visibility:hidden; border-radius:18px;
+  display:flex; align-items:center; justify-content:center; text-align:center; padding:30px;
+  border:1px solid var(--line);
+}
+.fc-front{background:linear-gradient(160deg, var(--surface2), var(--surface));}
+.fc-front .txt{font-family:'Fraunces',serif; font-size:22px; font-weight:600; line-height:1.4;}
+.fc-back{background:linear-gradient(160deg, var(--accent-dim), var(--surface)); transform:rotateY(180deg);}
+.fc-back .txt{font-size:15px; line-height:1.65; color:#e4e9e0;}
+.fc-hint{position:absolute; bottom:14px; left:0; right:0; text-align:center; font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--muted); letter-spacing:.05em;}
+.fc-nav{display:flex; justify-content:center; gap:10px;}
+.nav-btn{
+  appearance:none; border:1px solid var(--line); background:var(--surface2); color:var(--text);
+  font-family:'IBM Plex Mono',monospace; font-size:12.5px; padding:10px 18px; border-radius:10px; cursor:pointer;
+}
+.nav-btn:hover{border-color:var(--accent);}
+.nav-btn.primary{background:var(--accent); color:#0d1611; border-color:var(--accent); font-weight:600;}
+
+/* ---------- Quiz ---------- */
+.quiz-bar{display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px;}
+.quiz-score{font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--accent);}
+.qcard{background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:26px; margin-bottom:16px;}
+.qmeta{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted); margin-bottom:10px;}
+.qtext{font-family:'Fraunces',serif; font-size:19px; font-weight:600; margin:0 0 18px; line-height:1.4;}
+.qopts{display:flex; flex-direction:column; gap:9px;}
+.qopt{
+  text-align:left; border:1px solid var(--line); background:var(--surface2); color:var(--text);
+  padding:12px 15px; border-radius:10px; cursor:pointer; font-size:14px; font-family:'Inter',sans-serif;
+  display:flex; gap:10px; transition:all .15s ease;
+}
+.qopt .lab{font-family:'IBM Plex Mono',monospace; color:var(--muted); font-weight:600;}
+.qopt:hover:not(.locked){border-color:var(--accent);}
+.qopt.correct{background:var(--accent-dim); border-color:var(--accent);}
+.qopt.wrong{background:var(--accent2-dim); border-color:var(--accent2);}
+.qfoot{display:flex; justify-content:space-between; align-items:center; margin-top:16px; gap:12px; flex-wrap:wrap;}
+.qexplain{font-size:13px; color:var(--muted); line-height:1.55; max-width:70%;}
+.quiz-nav{display:flex; gap:8px;}
+.qgrid{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:20px;}
+.qdot{
+  width:30px; height:30px; border-radius:8px; border:1px solid var(--line); background:var(--surface2);
+  color:var(--muted); font-family:'IBM Plex Mono',monospace; font-size:11px; display:flex; align-items:center; justify-content:center;
+  cursor:pointer;
+}
+.qdot.current{border-color:var(--accent); color:var(--text);}
+.qdot.done-right{background:var(--accent-dim); color:var(--accent); border-color:var(--accent);}
+.qdot.done-wrong{background:var(--accent2-dim); color:var(--accent2); border-color:var(--accent2);}
+
+footer.site{
+  border-top:1px solid var(--line); margin-top:60px; padding:26px 22px;
+  display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;
+}
+footer.site .brand{font-family:'Fraunces',serif; font-size:14px; color:var(--muted);}
+footer.site .rights{font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--muted);}
+footer.site .rights b{color:var(--accent);}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="arrow-field">
+    <svg viewBox="0 0 420 420">
+      <path class="arrow-path" d="M40,340 C 140,280 160,180 260,120" marker-end="url(#h1)"/>
+      <path class="arrow-path b" d="M90,80 C 160,140 180,240 320,300" marker-end="url(#h2)"/>
+      <defs>
+        <marker id="h1" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+          <path d="M0,0 L8,4 L0,8 Z" fill="#ff7a54"/>
+        </marker>
+        <marker id="h2" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+          <path d="M0,0 L8,4 L0,8 Z" fill="#7fe7b4"/>
+        </marker>
+      </defs>
+    </svg>
+  </div>
+  <div class="hero-inner">
+    <div class="eyebrow">Electrophilic Aromatic Substitution · Reactivity &amp; Orientation</div>
+    <h1 class="title">Study <em>Smart</em></h1>
+    <p class="subtitle">Everything on directing effects, carbonium‑ion stability, and why halogens break the rules — organized into five focused tools instead of one long lecture.</p>
+  </div>
+</header>
+
+<nav class="tabs">
+  <div class="tabs-inner">
+    <button class="tab-btn active" data-tab="overview"><span class="n">01</span>Overview</button>
+    <button class="tab-btn" data-tab="diagrams"><span class="n">02</span>Interactive Diagrams</button>
+    <button class="tab-btn" data-tab="minimap"><span class="n">03</span>Mini Map</button>
+    <button class="tab-btn" data-tab="flashcards"><span class="n">04</span>Flash Cards</button>
+    <button class="tab-btn" data-tab="quiz"><span class="n">05</span>Quiz Bank</button>
+  </div>
+</nav>
+
+<div class="wrap">
+
+<!-- ================= OVERVIEW ================= -->
+<section class="panel active" id="overview">
+  <div class="section-head">
+    <h2>The whole topic, compressed</h2>
+    <p>No paragraphs to re-read — just the rules, the definitions, and the numbers that show up on exams.</p>
+  </div>
+
+  <div class="rule-strip">
+    <div class="rule-chip"><div class="k">RULE 01</div><div class="v">Activators → ortho/para. Deactivators (except halogens) → meta.</div></div>
+    <div class="rule-chip"><div class="k">RULE 02</div><div class="v">Rate is set by the slow step: attack of the electrophile forming the carbonium ion.</div></div>
+    <div class="rule-chip"><div class="k">RULE 03</div><div class="v">More stable carbonium ion → faster substitution.</div></div>
+    <div class="rule-chip"><div class="k">RULE 04</div><div class="v">Charge in the intermediate is strongest ortho and para to the attacked carbon.</div></div>
+    <div class="rule-chip"><div class="k">RULE 05</div><div class="v">Halogens: inductive withdrawal deactivates; resonance donation directs o,p.</div></div>
+  </div>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <h3><span class="dot"></span>Rate-determining step</h3>
+      <p>C₆H₆ + Y⁺ → arenium ion (carbonium ion), slow, rate-determining. A second fast step then loses H⁺ to restore aromaticity.</p>
+      <div class="law">Faster reaction ⇔ more stable transition state ⇔ more stable carbonium ion (same factors stabilize both).</div>
+    </div>
+    <div class="card">
+      <h3><span class="dot"></span>Why ortho/para & meta happen</h3>
+      <p>An activator raises reactivity at <b>every</b> position but raises ortho/para the most. A deactivator lowers reactivity everywhere but lowers ortho/para the most — so meta becomes the relatively "least bad" option.</p>
+    </div>
+    <div class="card">
+      <h3><span class="dot"></span>Activating groups (release electrons)</h3>
+      <span class="tag up">Ortho, Para directors</span>
+      <ul>
+        <li>—NH₂, —OH, —OCH₃, —NHCOCH₃ <i>(resonance-dominant)</i></li>
+        <li>—C₆H₅, —CH₃ and other alkyls <i>(inductive)</i></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="dot"></span>Deactivating groups (withdraw electrons)</h3>
+      <span class="tag down">Meta directors</span>
+      <ul>
+        <li>—N(CH₃)₃⁺, —NO₂, —CN, —SO₃H</li>
+        <li>—COOH, —CHO, —COR <i>(multiple bond to O/N pulls electrons from the ring)</i></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="dot"></span>Halogens — the exception</h3>
+      <p>—X is deactivating (net effect, inductive wins) <b>but</b> ortho, para-directing (resonance wins for orientation, even though it's the weaker of the two effects).</p>
+      <div class="law">Reactivity ← inductive effect &nbsp;|&nbsp; Orientation ← resonance effect</div>
+    </div>
+    <div class="card">
+      <h3><span class="dot"></span>Key numbers to remember</h3>
+      <ul>
+        <li>tert-Butylbenzene: <b>16×</b> more reactive than benzene (nitration)</li>
+        <li>Toluene: <b>25×</b> more reactive than benzene (nitration)</li>
+        <li>Benzyl chloride (CH₂Cl): only <b>⅓</b> as reactive as benzene</li>
+        <li>CH₂Cl → CHCl₂ → CCl₃: deactivation gets stronger each step</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ================= DIAGRAMS ================= -->
+<section class="panel" id="diagrams">
+  <div class="section-head">
+    <h2>Interactive Diagrams</h2>
+    <p>Pick a substituent and an attack position — watch where the positive charge lands and whether that helps or hurts the reaction.</p>
+  </div>
+
+  <div class="lab">
+    <div class="controls-block">
+      <div class="ctrl-group">
+        <label class="ctrl-title">Substituent (G)</label>
+        <div class="btn-row" id="gButtons"></div>
+      </div>
+      <div class="ctrl-group">
+        <label class="ctrl-title">Electrophile attacks…</label>
+        <div class="btn-row" id="posButtons"></div>
+      </div>
+      <div class="ctrl-group">
+        <label class="ctrl-title">Verdict</label>
+        <div class="verdict" id="verdictBox">Choose a substituent and attack position.</div>
+      </div>
+    </div>
+    <div class="ring-stage">
+      <div class="hexwrap">
+        <svg class="hex" id="hexSvg" viewBox="0 0 260 260"></svg>
+      </div>
+      <div class="legend">
+        <span><span class="sw" style="background:var(--accent2)"></span>Bears + charge</span>
+        <span><span class="sw" style="background:transparent;border:2px solid var(--accent)"></span>G position</span>
+        <span><span class="sw" style="background:transparent;border:2px solid #fff"></span>Attacked carbon</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-head" style="margin-top:40px;">
+    <h2 style="font-size:22px;">Relative nitration rates (benzene = 1)</h2>
+    <p>Click a bar for context.</p>
+  </div>
+  <div class="card">
+    <div class="barchart" id="barChart"></div>
+    <div class="bar-tooltip" id="barTooltip">Click any bar above.</div>
+  </div>
+
+  <div class="section-head" style="margin-top:32px;">
+    <h2 style="font-size:22px;">Substituent reference table</h2>
+    <p>Click a row for a one-line explanation.</p>
+  </div>
+  <div class="card">
+    <table class="gtable" id="gTable">
+      <thead><tr><th>Group</th><th>Effect</th><th>Directs</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div class="bar-tooltip" id="tableTooltip" style="margin-top:14px;"></div>
+  </div>
+</section>
+
+<!-- ================= MINI MAP ================= -->
+<section class="panel" id="minimap">
+  <div class="section-head">
+    <h2>Mini Map</h2>
+    <p>Click a node — the explanation opens right here, in the panel beside it.</p>
+  </div>
+  <div class="mm-layout">
+    <div class="mm-list" id="mmList"></div>
+    <div class="mm-display" id="mmDisplay">
+      <div class="empty">Select a topic on the left to display it here.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FLASHCARDS ================= -->
+<section class="panel" id="flashcards">
+  <div class="section-head">
+    <h2>Flash Cards</h2>
+    <p>Tap the card to flip it. Use next / previous or shuffle the deck.</p>
+  </div>
+  <div class="fc-bar">
+    <div class="fc-count" id="fcCount">Card 1 / 1</div>
+    <div class="fc-nav">
+      <button class="nav-btn" id="fcShuffle">Shuffle</button>
+    </div>
+  </div>
+  <div class="fc-stage">
+    <div class="flashcard" id="flashcard">
+      <div class="fc-inner">
+        <div class="fc-face fc-front"><div class="txt" id="fcFront"></div><div class="fc-hint">TAP TO FLIP</div></div>
+        <div class="fc-face fc-back"><div class="txt" id="fcBack"></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="fc-nav" style="justify-content:center;">
+    <button class="nav-btn" id="fcPrev">← Previous</button>
+    <button class="nav-btn primary" id="fcFlip">Flip</button>
+    <button class="nav-btn" id="fcNext">Next →</button>
+  </div>
+</section>
+
+<!-- ================= QUIZ ================= -->
+<section class="panel" id="quiz">
+  <div class="section-head">
+    <h2>Quiz Bank</h2>
+    <p>Answer choices shuffle every time. Jump to any question from the grid below.</p>
+  </div>
+  <div class="quiz-bar">
+    <div class="qgrid-wrap" style="flex:1;">
+      <div class="qgrid" id="qGrid"></div>
+    </div>
+    <div class="quiz-score" id="quizScore">Score: 0 / 0</div>
+  </div>
+  <div class="qcard">
+    <div class="qmeta" id="qMeta"></div>
+    <div class="qtext" id="qText"></div>
+    <div class="qopts" id="qOpts"></div>
+    <div class="qfoot">
+      <div class="qexplain" id="qExplain"></div>
+      <div class="quiz-nav">
+        <button class="nav-btn" id="qPrev">← Prev</button>
+        <button class="nav-btn primary" id="qNext">Next →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<footer class="site">
+  <div class="brand">Study Smart — Reactivity &amp; Orientation</div>
+  <div class="rights">© <span id="yr"></span> All rights reserved — <b>Anmar Taha</b></div>
+</footer>
+
+<script>
+document.getElementById('yr').textContent = new Date().getFullYear();
+
+/* ---------------- TAB SWITCHING ---------------- */
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+    window.scrollTo({top:0, behavior:'instant'});
+  });
+});
+
+/* ================= DIAGRAM LAB ================= */
+const substituents = {
+  ch3:  {label:'—CH₃', kind:'activator', mode:'inductive', note:'Alkyl groups release electrons inductively.'},
+  nh2:  {label:'—NH₂ / —OH', kind:'activator', mode:'resonance', note:'Lone pair donates directly into the ring — the strongest activation.'},
+  no2:  {label:'—NO₂', kind:'deactivator', mode:'inductive', note:'Strong electron withdrawal by induction and resonance.'},
+  cl:   {label:'—Cl (halogen)', kind:'halogen', mode:'dual', note:'Withdraws by induction, donates by resonance.'}
+};
+let currentG = 'ch3';
+let currentPos = 'ortho'; // ortho, meta, para relative to G
+
+const gButtons = document.getElementById('gButtons');
+Object.entries(substituents).forEach(([key,val])=>{
+  const b = document.createElement('button');
+  b.className='opt-btn'+(key===currentG?' active':'');
+  b.textContent = val.label;
+  b.dataset.g = key;
+  b.addEventListener('click', ()=>{ currentG=key; renderLab(); });
+  gButtons.appendChild(b);
+});
+const posButtons = document.getElementById('posButtons');
+['ortho','meta','para'].forEach(pos=>{
+  const b = document.createElement('button');
+  b.className='opt-btn'+(pos===currentPos?' active':'');
+  b.textContent = pos.charAt(0).toUpperCase()+pos.slice(1);
+  b.dataset.pos = pos;
+  b.addEventListener('click', ()=>{ currentPos=pos; renderLab(); });
+  posButtons.appendChild(b);
+});
+
+// Hexagon: C1 (top) = G. Clockwise C1..C6.
+const angles = [-90,-30,30,90,150,210]; // C1..C6 degrees
+const R = 95, cx=130, cy=130;
+function pt(deg){
+  const rad = deg*Math.PI/180;
+  return [cx + R*Math.cos(rad), cy + R*Math.sin(rad)];
+}
+const coords = angles.map(pt);
+
+function attackIndex(pos){
+  // C1 = index0 = G. ortho attack -> C2 (index1); meta attack -> C3(index2); para attack -> C4(index3)
+  return {ortho:1, meta:2, para:3}[pos];
+}
+function chargeIndices(attackIdx){
+  // ortho & para relative to attack carbon (0-indexed ring of 6)
+  const orthoA = (attackIdx+1)%6, orthoB=(attackIdx+5)%6, paraC=(attackIdx+3)%6;
+  return [orthoA, orthoB, paraC];
+}
+
+function renderLab(){
+  document.querySelectorAll('#gButtons .opt-btn').forEach(b=>b.classList.toggle('active', b.dataset.g===currentG));
+  document.querySelectorAll('#posButtons .opt-btn').forEach(b=>b.classList.toggle('active', b.dataset.pos===currentPos));
+
+  const attackIdx = attackIndex(currentPos);
+  const charges = chargeIndices(attackIdx);
+  const gAffected = charges.includes(0); // does charge land on G's carbon?
+
+  const svg = document.getElementById('hexSvg');
+  svg.innerHTML='';
+  // ring outline
+  const poly = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+  poly.setAttribute('points', coords.map(c=>c.join(',')).join(' '));
+  poly.setAttribute('class','hex-edge');
+  svg.appendChild(poly);
+
+  coords.forEach((c,i)=>{
+    const circ = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    circ.setAttribute('cx',c[0]); circ.setAttribute('cy',c[1]); circ.setAttribute('r', i===0?11:9);
+    let cls='carbon';
+    if(charges.includes(i)) cls+=' charge';
+    if(i===0) cls+=' gcarbon';
+    if(i===attackIdx) cls+=' attack';
+    circ.setAttribute('class',cls);
+    svg.appendChild(circ);
+
+    const label = document.createElementNS('http://www.w3.org/2000/svg','text');
+    const lx = cx + (R+22)*Math.cos(angles[i]*Math.PI/180);
+    const ly = cy + (R+22)*Math.sin(angles[i]*Math.PI/180);
+    label.setAttribute('x',lx); label.setAttribute('y',ly+4);
+    label.setAttribute('class', i===0?'glabel':'clabel');
+    label.textContent = i===0 ? substituents[currentG].label : ('C'+(i+1));
+    svg.appendChild(label);
+  });
+
+  // verdict
+  const sub = substituents[currentG];
+  const box = document.getElementById('verdictBox');
+  let text='';
+  if(sub.kind==='activator'){
+    if(gAffected){
+      text = `<b>Strongly stabilized.</b> ${currentPos.charAt(0).toUpperCase()+currentPos.slice(1)} attack puts positive charge on the ring carbon bearing ${sub.label}. Because this group releases electrons${sub.mode==='resonance'?' — mainly by resonance, donating its lone pair right into the ring':' inductively'}, it neutralizes that charge directly. This is why activators favor ortho/para.`;
+    } else {
+      text = `<b>Only weakly stabilized.</b> Meta attack keeps the charge off the carbon that carries ${sub.label}, so the group can't help through resonance or strong induction here. The ring is still faster than benzene overall, just less so than at ortho/para.`;
+    }
+  } else if(sub.kind==='deactivator'){
+    if(gAffected){
+      text = `<b>Strongly destabilized.</b> ${currentPos.charAt(0).toUpperCase()+currentPos.slice(1)} attack forces positive charge onto (or next to) the carbon bearing ${sub.label} — an electron-withdrawing group. Two positive centers end up adjacent, which is very unfavorable. This is why deactivators like NO₂ push substitution to meta.`;
+    } else {
+      text = `<b>Least destabilized (relatively).</b> Meta attack keeps the charge away from the carbon bearing ${sub.label}, avoiding the worst clash with its electron-withdrawing pull. Still slower than benzene — just the "least bad" option.`;
+    }
+  } else { // halogen
+    if(gAffected){
+      text = `<b>Mixed, but resonance wins for orientation.</b> At ortho/para, the inductive pull of Cl still withdraws electrons (destabilizing) — but Cl's lone pair can also donate into the ring by resonance right at this carbon, giving an extra stabilizing structure. Net regiochemistry: ortho/para preferred, even though the ring overall reacts slower than benzene.`;
+    } else {
+      text = `<b>No resonance help available.</b> At the meta position, Cl's resonance donation can't reach — only the destabilizing inductive effect operates. That's why halogens, despite being deactivating everywhere, still favor ortho/para over meta.`;
+    }
+  }
+  box.innerHTML = text;
+  box.className = 'verdict' + (sub.kind!=='activator' ? ' warn':'');
+}
+renderLab();
+
+/* ---- bar chart ---- */
+const bars = [
+  {label:'Benzyl chloride', val:0.33, note:'CH₂Cl group: weakly deactivating — reacts slower than benzene toward nitration.', down:true},
+  {label:'Benzene', val:1, note:'Reference rate = 1.'},
+  {label:'tert-Butylbenzene', val:16, note:'Bulky alkyl group, strong inductive electron release — 16× benzene.'},
+  {label:'Toluene', val:25, note:'CH₃ is a stronger, less hindered electron donor here — 25× benzene toward nitration.'}
+];
+const maxVal = 25;
+const barChart = document.getElementById('barChart');
+bars.forEach(b=>{
+  const col = document.createElement('div');
+  col.className='bar-col';
+  const heightPct = Math.max(6, (Math.log(b.val+1)/Math.log(maxVal+1))*100);
+  col.innerHTML = `
+    <div class="bar-val">${b.val}×</div>
+    <div class="bar-track"><div class="bar-fill${b.down?' down':''}" style="height:${heightPct}%"></div></div>
+    <div class="bar-label">${b.label}</div>`;
+  col.addEventListener('click', ()=>{ document.getElementById('barTooltip').textContent = b.note; });
+  barChart.appendChild(col);
+});
+
+/* ---- group table ---- */
+const groupRows = [
+  ['—NH₂ / —OH','Strong activator (resonance)','Ortho, Para'],
+  ['—OCH₃ / —NHCOCH₃','Strong activator (resonance)','Ortho, Para'],
+  ['—C₆H₅ / —CH₃ (alkyls)','Activator (inductive)','Ortho, Para'],
+  ['—X (F, Cl, Br, I)','Deactivator (net), donor by resonance','Ortho, Para'],
+  ['—CH₂Cl','Weak deactivator','Meta'],
+  ['—CHCl₂ / —CCl₃','Stronger deactivator','Meta'],
+  ['—NO₂ / —CN / —SO₃H','Strong deactivator','Meta'],
+  ['—COOH / —CHO / —COR','Deactivator','Meta'],
+  ['—N(CH₃)₃⁺','Strongest deactivator','Meta']
+];
+const notesByGroup = {
+  '—NH₂ / —OH':'Lone pair on N/O feeds directly into the ring by resonance — the strongest possible activation.',
+  '—OCH₃ / —NHCOCH₃':'Same resonance donation as NH₂/OH, slightly reduced by the extra substituent.',
+  '—C₆H₅ / —CH₃ (alkyls)':'No lone pair to donate — activation comes only from the inductive push of alkyl C–H/C–C bonds.',
+  '—X (F, Cl, Br, I)':'Inductive withdrawal dominates the rate (deactivating); resonance donation dominates the regiochemistry (o,p-directing).',
+  '—CH₂Cl':'One chlorine pulls electron density via induction — mild deactivation, no resonance donation available.',
+  '—CHCl₂ / —CCl₃':'Each added Cl increases inductive withdrawal — deactivation gets progressively stronger.',
+  '—NO₂ / —CN / —SO₃H':'The atom next to the ring is multiply bonded to an electronegative atom, so it withdraws ring electrons to compensate.',
+  '—COOH / —CHO / —COR':'Carbonyl-type groups: same multiple-bond-to-oxygen withdrawal pattern as NO₂/CN.',
+  '—N(CH₃)₃⁺':'A full, permanent positive charge — the most powerful electron-withdrawing pull of all.'
+};
+const gTableBody = document.querySelector('#gTable tbody');
+groupRows.forEach(r=>{
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td>`;
+  tr.addEventListener('click', ()=>{ document.getElementById('tableTooltip').textContent = notesByGroup[r[0]]; });
+  gTableBody.appendChild(tr);
+});
+
+/* ================= MINI MAP ================= */
+const mmTopics = [
+  {title:'Rate-Determining Step', text:'Electrophilic aromatic substitution is a two-step process. The slow, rate-determining step is attack of the electrophile Y⁺ on the ring to form the carbonium ion (arenium ion / sigma complex). A fast second step then removes H⁺ to restore the aromatic ring. Because the first step is slow, the overall rate depends entirely on how easily that carbonium ion forms.'},
+  {title:'Carbonium Ion Resonance', text:'The intermediate is a resonance hybrid of three contributing structures (I, II, III), each placing the positive charge on a different ring carbon: ortho, ortho, and para to the carbon under attack. The meta carbons never carry positive charge in this hybrid — which is exactly why substituents at ortho/para positions have the strongest influence on stability.'},
+  {title:'Why Activators Direct Ortho/Para', text:'An activating group speeds up substitution everywhere on the ring, even meta — but it speeds up ortho and para the most, because those are the positions where the resonance charge can actually reach the substituent. Ortho/para orientation is simply the result of that extra boost being concentrated at two positions.'},
+  {title:'Why Deactivators Direct Meta', text:'A deactivating group slows substitution everywhere, even meta — but it slows ortho and para the most, since an electron-withdrawing group sitting right where the positive charge accumulates is especially destabilizing. Meta becomes the relatively fastest (least slow) position, so that is where substitution occurs.'},
+  {title:'Inductive vs Resonance Effect', text:'Inductive effect: electron pull or push transmitted through sigma bonds, felt at all ring positions, strongest close to the substituent. Resonance effect: electron donation or withdrawal through the pi system, felt specifically at positions that can be drawn into a resonance structure with the substituent (ortho/para). NH₂ and OH activate mainly by resonance; alkyl groups activate mainly by induction; halogens show both effects working in opposite directions.'},
+  {title:'Halogen Dual Effect', text:'Halogens withdraw electrons inductively (deactivating the whole ring, felt most at ortho/para) but donate electrons by resonance (stabilizing specifically the ortho/para carbonium ions). The inductive effect is stronger overall, so halobenzenes react slower than benzene — but the resonance effect controls where that slower reaction happens, so substitution still lands ortho/para.'},
+  {title:'NO₂ and Adjacent Positive Charges', text:'NO₂ withdraws electrons from all ring positions, but most strongly from the carbon nearest it. Attack at ortho or para puts positive ring charge right next to (or on) that already electron-poor carbon, creating two adjacent positive centers — highly unstable. Meta attack avoids this clash, so nitrobenzene undergoes meta substitution.'},
+  {title:'Multiple-Bond-to-O/N Groups', text:'NO₂, CN, SO₃H, COOH, CHO, and COR all share a structural feature: the atom directly attached to the ring is joined by a multiple bond to an electronegative atom (O or N). That electronegative atom pulls the mobile pi electrons away, leaving the ring-attached atom electron-deficient — so it pulls electron density from the ring to partly compensate. This is the shared reason all of these groups deactivate and direct meta.'},
+  {title:'Toluene & Reactivity Data', text:'Toward nitration, toluene reacts 25 times faster than benzene, and tert-butylbenzene reacts 16 times faster — both alkyl groups are activators. Benzyl chloride (—CH₂Cl) reacts only one-third as fast as benzene: replacing one hydrogen with chlorine is enough to flip the group from activating to weakly deactivating.'},
+  {title:'Halomethyl Series (CH₂Cl → CCl₃)', text:'As more hydrogens on the methyl group are replaced by chlorine, the inductive electron-withdrawing power increases step by step: —CH₂Cl is weakly deactivating, —CHCl₂ is moderately deactivating, and —CCl₃ is strongly deactivating. Each additional electronegative chlorine pulls more electron density away from the ring through induction.'}
+];
+const mmList = document.getElementById('mmList');
+const mmDisplay = document.getElementById('mmDisplay');
+mmTopics.forEach((topic, i)=>{
+  const b = document.createElement('button');
+  b.className='mm-node';
+  b.innerHTML = `<span>${topic.title}</span><span class="idx">${String(i+1).padStart(2,'0')}</span>`;
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('.mm-node').forEach(n=>n.classList.remove('active'));
+    b.classList.add('active');
+    mmDisplay.innerHTML = `<h4>${topic.title}</h4><p>${topic.text}</p>`;
+  });
+  mmList.appendChild(b);
+});
+
+/* ================= FLASHCARDS ================= */
+let flashcards = [
+  {t:'Carbonium ion (arenium ion / σ-complex)', d:'The non-aromatic, positively charged intermediate formed when an electrophile attacks the benzene ring — a resonance hybrid with charge on the ortho and para carbons relative to the attack site.'},
+  {t:'Activating group', d:'A substituent that makes the ring react faster than benzene by releasing electron density (inductively or by resonance), directing new substitution to ortho and para.'},
+  {t:'Deactivating group', d:'A substituent that makes the ring react slower than benzene by withdrawing electron density. Except for halogens, deactivators direct new substitution to meta.'},
+  {t:'Ortho, para director', d:'A group that channels the extra reactivity it provides mostly into the ortho and para positions, because those are the positions where the carbonium-ion charge can reach it.'},
+  {t:'Meta director', d:'A group whose destabilizing effect is felt least at the meta position, so substitution occurs there relative to ortho/para.'},
+  {t:'Inductive effect', d:'Electron push or pull transmitted through sigma bonds; strongest near the substituent and felt (to some degree) at every ring position.'},
+  {t:'Resonance effect', d:'Electron donation or withdrawal through the pi system; only effective at positions that can be drawn into a resonance structure with the substituent — ortho and para.'},
+  {t:'Rate-determining step of EAS', d:'Formation of the carbonium ion by electrophilic attack on the ring — this slow step controls the overall reaction rate.'},
+  {t:'Why NH₂/OH activate so strongly', d:'Their lone pair donates directly into the ring by resonance, which is a far stronger effect than any inductive contribution.'},
+  {t:'Why alkyl groups (CH₃, C(CH₃)₃) activate', d:'They have no lone pair to donate, so activation comes purely from the inductive electron release of their C–H/C–C bonds.'},
+  {t:'Halogens: net rate effect', d:'Deactivating — the inductive electron withdrawal outweighs the resonance electron donation.'},
+  {t:'Halogens: net orientation effect', d:'Ortho, para-directing — resonance donation, although the weaker effect overall, is what controls where the (slower) reaction happens.'},
+  {t:'N(CH₃)₃⁺', d:'Carries a full permanent positive charge on nitrogen, giving it the strongest electron-withdrawing (deactivating) effect of any common substituent.'},
+  {t:'Shared feature of NO₂, CN, SO₃H, COOH, CHO, COR', d:'The ring-attached atom is joined by a multiple bond to an electronegative O or N, which pulls the ring-attached atom electron-deficient, so it withdraws electrons from the ring.'},
+  {t:'Why NO₂ specifically directs meta', d:'Ortho/para attack places ring positive charge adjacent to the already electron-poor carbon bearing NO₂ — two positive centers next to each other, which is very unstable. Meta attack avoids this.'},
+  {t:'tert-Butylbenzene reactivity (nitration)', d:'16 times more reactive than benzene.'},
+  {t:'Toluene reactivity (nitration)', d:'25 times more reactive than benzene.'},
+  {t:'Benzyl chloride reactivity (nitration)', d:'Only one-third (⅓) as reactive as benzene — the CH₂Cl group is weakly deactivating.'},
+  {t:'CH₂Cl → CHCl₂ → CCl₃ trend', d:'Deactivation increases at each step, since every additional chlorine adds more inductive electron withdrawal.'},
+  {t:'Why the more stable carbonium ion forms faster', d:'Any factor that stabilizes the full positive charge of the carbonium ion also stabilizes the partial positive charge developing in the transition state leading to it (same dispersal mechanism), so a more stable ion means a faster rate-determining step.'},
+  {t:'Structures I, II, III, IV of the carbonium ion', d:'I, II, III are the three individual resonance contributors with charge on different ortho/para carbons; IV is the composite hybrid, usually drawn as a dashed circle showing the delocalized positive charge.'},
+  {t:'Position of strongest charge in the hybrid', d:'Ortho and para to the carbon being attacked by the electrophile — never meta to it.'},
+  {t:'Full activating-group list', d:'—NH₂, —OH, —OCH₃, —NHCOCH₃ (resonance donors); —C₆H₅, —CH₃ and other alkyls (inductive donors).'},
+  {t:'Full deactivating-group list', d:'—N(CH₃)₃⁺, —NO₂, —CN, —SO₃H, —COOH, —CHO, —COR, and —X (halogens, which are the ortho/para-directing exception).'}
+];
+let fcOrder = flashcards.map((_,i)=>i);
+let fcIndex = 0;
+const flashcardEl = document.getElementById('flashcard');
+const fcFront = document.getElementById('fcFront');
+const fcBack = document.getElementById('fcBack');
+const fcCount = document.getElementById('fcCount');
+
+function renderFlashcard(){
+  const card = flashcards[fcOrder[fcIndex]];
+  fcFront.textContent = card.t;
+  fcBack.textContent = card.d;
+  fcCount.textContent = `Card ${fcIndex+1} / ${flashcards.length}`;
+  flashcardEl.classList.remove('flipped');
+}
+document.getElementById('fcFlip').addEventListener('click', ()=> flashcardEl.classList.toggle('flipped'));
+flashcardEl.addEventListener('click', ()=> flashcardEl.classList.toggle('flipped'));
+document.getElementById('fcNext').addEventListener('click', ()=>{
+  fcIndex = (fcIndex+1) % flashcards.length; renderFlashcard();
+});
+document.getElementById('fcPrev').addEventListener('click', ()=>{
+  fcIndex = (fcIndex-1+flashcards.length) % flashcards.length; renderFlashcard();
+});
+document.getElementById('fcShuffle').addEventListener('click', ()=>{
+  for(let i=fcOrder.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [fcOrder[i],fcOrder[j]]=[fcOrder[j],fcOrder[i]]; }
+  fcIndex=0; renderFlashcard();
+});
+renderFlashcard();
+
+/* ================= QUIZ BANK ================= */
+const quizBank = [
+  {q:'What is the rate-determining step of electrophilic aromatic substitution?', opts:['Loss of H⁺ from the carbonium ion','Attack of the electrophile on the ring to form the carbonium ion','Formation of the aromatic product','Approach of the nucleophile'], correct:1, exp:'The slow step is electrophilic attack forming the carbonium ion; loss of H⁺ afterward is fast.'},
+  {q:'Which factor determines the relative rate of substitution among closely related aromatic compounds?', opts:['The boiling point of the arene','The relative stability of the carbonium ion intermediates','The polarity of the solvent only','The size of the electrophile only'], correct:1, exp:'Differences in rate trace back to differences in stability of the carbonium ion (and its transition state).'},
+  {q:'In the resonance hybrid of the carbonium ion, where is the positive charge strongest?', opts:['Only on the carbon directly attacked','Ortho and para to the carbon being attacked','Meta to the carbon being attacked','Spread equally over all six carbons'], correct:1, exp:'Structures I–III place the charge ortho and para to the attacked carbon.'},
+  {q:'Why does methyl activate the benzene ring?', opts:['It withdraws electrons through resonance','It makes ortho and meta positions equally reactive','It releases electrons, making the ring react faster than benzene','It removes a hydrogen from the ring'], correct:2, exp:'CH₃ is an inductive electron donor, so it makes the whole ring — and especially ortho/para — react faster.'},
+  {q:'Why does an activating group cause ortho, para orientation rather than meta?', opts:['It only activates the ortho and para positions and leaves meta untouched','It activates all positions but activates ortho and para the most','It deactivates meta completely','It has no effect on relative rates'], correct:1, exp:'Even meta is faster than benzene, but ortho/para are boosted the most.'},
+  {q:'Why does a deactivating group cause meta orientation?', opts:['It deactivates every position equally','It deactivates ortho and para the least','It deactivates ortho and para the most, leaving meta relatively fastest','It only deactivates ipso'], correct:2, exp:'Meta becomes the "least slowed" position, so it dominates the product mixture.'},
+  {q:'Which of these groups activates the ring primarily through resonance rather than induction?', opts:['—CH₃','—C(CH₃)₃','—NH₂','—C₆H₅'], correct:2, exp:'NH₂ donates its lone pair directly into the ring — a resonance effect, much stronger than any inductive effect.'},
+  {q:'tert-Butylbenzene is how many times more reactive than benzene toward nitration?', opts:['2 times','8 times','16 times','25 times'], correct:2, exp:'tert-Butylbenzene: 16× benzene toward nitration.'},
+  {q:'Toluene is how many times more reactive than benzene toward nitration?', opts:['5 times','16 times','25 times','50 times'], correct:2, exp:'Toluene: 25× benzene toward nitration.'},
+  {q:'How reactive is benzyl chloride (—CH₂Cl) compared with benzene toward nitration?', opts:['3 times more reactive','Equally reactive','About one-third as reactive','About 16 times more reactive'], correct:2, exp:'Benzyl chloride reacts about ⅓ as fast as benzene — the CH₂Cl group is weakly deactivating.'},
+  {q:'Going from —CH₂Cl to —CHCl₂ to —CCl₃, what happens to the deactivating strength?', opts:['It decreases at each step','It stays constant','It increases at each step','It reverses to activating'], correct:2, exp:'Each additional chlorine increases inductive electron withdrawal, so deactivation gets stronger.'},
+  {q:'What is the net effect of a halogen substituent on reaction rate?', opts:['Activating', 'Deactivating', 'No effect', 'Activating at meta only'], correct:1, exp:'The inductive withdrawal effect of halogens outweighs their resonance donation, so they deactivate overall.'},
+  {q:'What is the net effect of a halogen substituent on orientation?', opts:['Meta-directing', 'Ortho, para-directing', 'Ipso-directing only', 'No preference'], correct:1, exp:'Resonance donation, although weaker than the inductive effect, controls orientation — so halogens direct ortho/para.'},
+  {q:'Which effect explains why halogens deactivate the ring?', opts:['Resonance donation of a lone pair', 'Inductive electron withdrawal', 'Steric hindrance', 'Hyperconjugation'], correct:1, exp:'Halogens pull electron density away from the ring inductively through the C–X sigma bond.'},
+  {q:'Which effect explains why halogens still direct ortho/para despite deactivating?', opts:['Inductive withdrawal', 'Resonance donation of a lone pair into the ring', 'Steric blocking of the meta position', 'Hydrogen bonding'], correct:1, exp:'A halogen lone pair can be drawn into resonance structures that place negative character (stabilization) specifically at ortho/para.'},
+  {q:'Why do NH₂ and OH not show the same "deactivating" inductive pull as halogens in a way that dominates?', opts:['They have no inductive effect at all', 'Their resonance donation is much stronger than their inductive withdrawal', 'They are not electronegative', 'They only affect the meta position'], correct:1, exp:'For NH₂/OH the resonance effect greatly outweighs the (smaller) inductive withdrawal, so they activate overall.'},
+  {q:'What structural feature do NO₂, CN, SO₃H, COOH, CHO, and COR all share?', opts:['A lone pair that donates into the ring', 'The ring-attached atom is multiply bonded to an electronegative O or N', 'They are all halogens', 'They all carry a full positive charge'], correct:1, exp:'The multiple bond to O/N pulls electrons from the ring-attached atom, which then withdraws from the ring to compensate.'},
+  {q:'Why is nitrobenzene meta-directing?', opts:['NO₂ has no electronic effect', 'Ortho/para attack places ring positive charge adjacent to the electron-poor carbon bearing NO₂', 'NO₂ blocks the ortho position sterically only', 'Meta attack is aromatic while ortho/para is not'], correct:1, exp:'Two adjacent positive centers (ring charge + NO₂-adjacent carbon) are very unstable, so meta attack is favored.'},
+  {q:'Which substituent has the strongest electron-withdrawing (deactivating) effect?', opts:['—CH₂Cl', '—NO₂', '—N(CH₃)₃⁺', '—Cl'], correct:2, exp:'—N(CH₃)₃⁺ carries a full, permanent positive charge, giving the strongest electron-withdrawing pull.'},
+  {q:'What does "inductive effect" mean in this context?', opts:['Electron transmission through the pi system only', 'Electron push or pull transmitted through sigma bonds', 'A change in ring geometry', 'A color change during reaction'], correct:1, exp:'The inductive effect works through sigma bonds and is felt (to varying degree) at every position.'},
+  {q:'What does "resonance effect" mean in this context?', opts:['Electron donation/withdrawal through the pi system, effective mainly at ortho/para', 'A purely steric effect', 'The same as the inductive effect', 'An effect only seen in NMR spectroscopy'], correct:0, exp:'Resonance effects operate through the pi system and reach specifically the ortho/para positions.'},
+  {q:'Which group list is entirely activating?', opts:['—NH₂, —OH, —CH₃, —C₆H₅', '—NO₂, —CN, —COOH', '—X, —SO₃H, —CHO', '—N(CH₃)₃⁺, —COR'], correct:0, exp:'NH₂, OH, CH₃, and C₆H₅ are all electron releasing / activating groups.'},
+  {q:'Which group list is entirely deactivating?', opts:['—CH₃, —OH, —OCH₃', '—NO₂, —CN, —SO₃H, —COOH', '—NH₂, —C₆H₅', '—OCH₃, —NHCOCH₃'], correct:1, exp:'NO₂, CN, SO₃H, and COOH are all electron-withdrawing / deactivating groups.'},
+  {q:'A more stable carbonium ion intermediate leads to what kind of reaction rate?', opts:['A slower reaction', 'A faster reaction', 'No change in rate', 'An unpredictable rate'], correct:1, exp:'The same stabilizing factors that stabilize the full carbonium ion also stabilize the developing charge in the transition state, speeding the reaction.'},
+  {q:'What is structure IV in the classic carbonium-ion diagram (dashed circle)?', opts:['A separate, unrelated intermediate', 'The composite resonance hybrid representing delocalized positive charge', 'The starting benzene ring', 'The final substituted product'], correct:1, exp:'Structure IV is shorthand for the resonance hybrid of structures I, II, and III.'},
+  {q:'Why does replacing a hydrogen of CH₃ with chlorine reduce its electron-releasing tendency?', opts:['Chlorine has no electronic effect', 'Chlorine is electronegative and withdraws electrons inductively, opposing CH₃’s donation', 'Chlorine adds a resonance-donating lone pair to the group', 'It has no effect on reactivity'], correct:1, exp:'Electronegative chlorine pulls electron density away, converting a donor group into a (weak) inductive withdrawer.'},
+  {q:'Why is the meta carbonium ion for NO₂ substitution more stable than the ortho/para one?', opts:['Meta attack breaks the ring open', 'The positive charge in the meta ion is not adjacent to the electron-poor carbon bearing NO₂', 'Meta attack does not form a carbonium ion', 'NO₂ has no effect at the meta position'], correct:1, exp:'Avoiding adjacent positive centers makes the meta intermediate relatively more stable, so meta substitution dominates.'},
+  {q:'For halogens, which effect is stronger overall — inductive or resonance?', opts:['Resonance is always stronger', 'Inductive is stronger, which is why halogens net deactivate', 'They are exactly equal for all halogens', 'Neither effect applies to halogens'], correct:1, exp:'The inductive withdrawal outweighs resonance donation for halogens, unlike for NH₂/OH where resonance dominates.'},
+  {q:'Which best describes an "arenium ion"?', opts:['A fully aromatic anion', 'The non-aromatic carbocation intermediate formed during electrophilic aromatic substitution', 'A neutral radical intermediate', 'The final aromatic product'], correct:1, exp:'The arenium ion (carbonium ion / sigma complex) is a non-aromatic, resonance-stabilized cation.'},
+  {q:'Which statement about halogens and NH₂/OH is correct?', opts:['Both groups show only an inductive effect', 'Both show inductive and resonance effects, but resonance dominates for NH₂/OH while induction dominates for halogens', 'Halogens only show resonance donation', 'NH₂/OH only show inductive withdrawal'], correct:1, exp:'Both effects are present in each group, but which one dominates differs — resonance for NH₂/OH, induction for halogens.'},
+  {q:'What happens to reactivity toward electrophilic substitution as you move from benzene to toluene to tert-butylbenzene?', opts:['Reactivity decreases steadily', 'Both alkyl-substituted arenes are more reactive than benzene, with toluene the most reactive of the two', 'Only tert-butylbenzene is more reactive', 'There is no measurable difference'], correct:1, exp:'Toluene (25×) is more reactive than tert-butylbenzene (16×), and both are more reactive than benzene.'},
+  {q:'Which of the following is NOT one of the three main resonance contributors (I, II, III) of the carbonium ion?', opts:['Charge ortho to the point of attack', 'Charge para to the point of attack', 'Charge meta to the point of attack', 'A second ortho contributor to the point of attack'], correct:2, exp:'The three classic contributors place charge at the two ortho positions and the para position relative to attack — never meta.'}
+];
+
+let quizAnswers = new Array(quizBank.length).fill(null); // stores chosen option index (post-shuffle) correctness
+let quizShuffled = quizBank.map(q=>{
+  const idxs = q.opts.map((_,i)=>i);
+  for(let i=idxs.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [idxs[i],idxs[j]]=[idxs[j],idxs[i]]; }
+  return {...q, order: idxs};
+});
+let quizIndex = 0;
+
+const qGrid = document.getElementById('qGrid');
+function buildGrid(){
+  qGrid.innerHTML='';
+  quizShuffled.forEach((_,i)=>{
+    const d = document.createElement('button');
+    d.className='qdot'+(i===quizIndex?' current':'');
+    if(quizAnswers[i]===true) d.classList.add('done-right');
+    if(quizAnswers[i]===false) d.classList.add('done-wrong');
+    d.textContent = i+1;
+    d.addEventListener('click', ()=>{ quizIndex=i; renderQuiz(); });
+    qGrid.appendChild(d);
+  });
+}
+
+function updateScore(){
+  const answered = quizAnswers.filter(a=>a!==null).length;
+  const right = quizAnswers.filter(a=>a===true).length;
+  document.getElementById('quizScore').textContent = `Score: ${right} / ${answered} answered (of ${quizBank.length})`;
+}
+
+function renderQuiz(){
+  const item = quizShuffled[quizIndex];
+  document.getElementById('qMeta').textContent = `Question ${quizIndex+1} of ${quizBank.length}`;
+  document.getElementById('qText').textContent = item.q;
+  const optsWrap = document.getElementById('qOpts');
+  optsWrap.innerHTML='';
+  const labels = ['A','B','C','D'];
+  const locked = quizAnswers[quizIndex] !== null;
+  item.order.forEach((origIdx, pos)=>{
+    const b = document.createElement('button');
+    b.className='qopt'+(locked?' locked':'');
+    b.innerHTML = `<span class="lab">${labels[pos]}</span><span>${item.opts[origIdx]}</span>`;
+    if(locked){
+      if(origIdx===item.correct) b.classList.add('correct');
+      else if(quizAnswers[quizIndex]===false && b.dataset.picked) b.classList.add('wrong');
+    }
+    b.addEventListener('click', ()=>{
+      if(quizAnswers[quizIndex]!==null) return;
+      const isCorrect = origIdx===item.correct;
+      quizAnswers[quizIndex]=isCorrect;
+      if(!isCorrect) b.dataset.picked='1';
+      renderQuiz();
+      buildGrid();
+      updateScore();
+    });
+    optsWrap.appendChild(b);
+  });
+  document.getElementById('qExplain').textContent = locked ? item.exp : '';
+  buildGrid();
+  updateScore();
+}
+document.getElementById('qPrev').addEventListener('click', ()=>{ quizIndex=(quizIndex-1+quizBank.length)%quizBank.length; renderQuiz(); });
+document.getElementById('qNext').addEventListener('click', ()=>{ quizIndex=(quizIndex+1)%quizBank.length; renderQuiz(); });
+renderQuiz();
+</script>
+</body>
+</html>
